@@ -47,23 +47,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        //データベースを初期化　ROOM.databaseBuilder()
+        //データベースを初期化　ROOM.databaseBuilderメソッド
         db = Room.databaseBuilder(
             //引数１つ目：Context
             this,
-            //引数２つ目：どのデータベースのオブジェクトを作るか。
-            // ここではMenuDatabaseを作りたいので、Menudatabaseクラスを渡す。
+            /*引数２つ目：どのデータベースのオブジェクトを作るか。
+            ここではMenuDatabaseを作りたいので、Menudatabaseクラスを渡す。*/
             MenuDatabase::class.java,
             //引数３つ目：Stringでどのファイルを保存するか
             "menu.db"
             //build()を呼ぶ
         ).build()
-        //データベースが作れたので、定義したmemoDAOを取ってくる。
+
+        //データベースをインスタンス化した。定義したmemoDAOを取ってくる。
         dao = db.menuDao()
 
         GlobalScope.launch {
-            //メインスレッドで実行すると、例外が起きる（クラッシュする）
-            //ワーカースレッドで実施する必要があるため、kotlinのコルーチンを使用する。
+            /*メインスレッドで実行すると、例外が起きる（クラッシュする）
+            ワーカースレッドで実施する必要があるため、kotlinのコルーチンを使用する。*/
             withContext(Dispatchers.IO) {
                 //起動時に入っているデータを全て削除
                 dao.deleteAll()
@@ -71,12 +72,15 @@ class MainActivity : AppCompatActivity() {
                 for (i in 0 until 20) {
                     for (i in name.indices) {
                         val menu = Menu(0, name[i], menuPrice[i], imageId[i])
+                        //データを保存
                         dao.insert(menu)
                     }
                 }
+                //データを取得
                 val datas = dao.getAll()
                 println(datas)
 
+                //メインスレッドでアダプターへデータをセット
                 withContext(Dispatchers.Main){
                     binding.listView.adapter = CustomAdapter(this@MainActivity,
                         datas as ArrayList<Menu>)
